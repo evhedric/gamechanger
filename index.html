@@ -18,34 +18,58 @@
   </style>
 </head>
 <body>
-  <h1>⚾️ Shockers Live Game Data</h1>
-  <div id="scoreboard" class="scoreboard">Loading...</div>
+  <h1>🔴 Shockers Live Game Data</h1>
+  <div id="scoreboard" class="scoreboard">Looking for a live game...</div>
 
   <script>
-    async function fetchGameData() {
-      try {
-        const res = await fetch("https://api.team-manager.gc.com/public/teams/1mywYde2zhYZ/games/b166e5f5-2246-4600-8bb2-a2c2294acfb8/details?include=line_scores");
-        const data = await res.json();
+    const teamId = "1mywYde2zhYZ";
 
-        const home = data?.game?.home_team?.name || "Home";
-        const away = data?.game?.away_team?.name || "Away";
-        const innings = data?.game?.line_scores?.innings || [];
+    async function fetchLiveGameId() {
+      const res = await fetch(`https://api.team-manager.gc.com/public/teams/${teamId}/games`);
+      const games = await res.json();
 
-        const homeScores = innings.map(i => i.home).join(" ");
-        const awayScores = innings.map(i => i.away).join(" ");
+      const now = new Date();
+      const liveGame = games.find(game => game.status === "in_progress");
 
-        document.getElementById("scoreboard").innerHTML = `
-          <strong>${away}</strong>: ${awayScores} <br/>
-          <strong>${home}</strong>: ${homeScores}
-        `;
-      } catch (err) {
-        console.error("Error fetching game data:", err);
-        document.getElementById("scoreboard").innerText = "Failed to load data.";
+      if (liveGame) return liveGame.id;
+
+      // If no "in_progress" game, try to find one starting soon (within 30 mins of now)
+      for (let game of games) {
+        const startTime = new Date(game.start_time);
+        const diff = Math.abs(now - startTime) / 1000 / 60; // in minutes
+        if (diff <= 30) return game.id;
       }
+
+      return null;
     }
 
-    fetchGameData(); // load once
-    setInterval(fetchGameData, 30000); // refresh every 30s
+    async function fetchAndDisplayScoreboard() {
+      const gameId = await fetchLiveGameId();
+
+      if (!gameId) {
+        document.getElementById("scoreboard").innerHTML = "No live or upcoming game found.";
+        return;
+      }
+
+      const res = await fetch(`https://api.team-manager.gc.com/public/teams/${teamId}/games/${gameId}/details?include=line_scores`);
+      const data = await res.json();
+
+      const home = data?.game?.home_team?.name || "Home";
+      const away = data?.game?.away_team?.name || "Away";
+      const innings = data?.game?.line_scores?.innings || [];
+
+      const homeScores = innings.map(i => i.home).join(" | ");
+      const awayScores = innings.map(i => i.away).join(" | ");
+
+      document.getElementById("scoreboard").innerHTML = `
+        <strong>${away}</strong>: ${awayScores} <br/>
+        <strong>${home}</strong>: ${homeScores}
+      `;
+    }
+
+    // Initial load + refresh every 30 seconds
+    fetchAndDisplayScoreboard();
+    setInterval(fetchAndDisplayScoreboard, 30000);
   </script>
 </body>
 </html>
