@@ -19,10 +19,10 @@
       justify-content: space-between;
     }
     header img {
-      height: 60px;
+      height: 50px;
     }
     .score {
-      font-size: 1.5rem;
+      font-size: 1.2rem;
       text-align: right;
     }
     .main {
@@ -35,6 +35,21 @@
       padding: 1rem;
       overflow-y: auto;
     }
+    .lineup h2 {
+      margin-bottom: 0.5rem;
+    }
+    .lineup-player {
+      margin: 0.3rem 0;
+      background-color: #222;
+      padding: 0.5rem;
+      border-radius: 6px;
+      cursor: grab;
+      transition: background 0.2s;
+    }
+    .lineup-player.active {
+      background-color: green;
+      color: #fff;
+    }
     .field {
       width: 75%;
       position: relative;
@@ -45,25 +60,18 @@
     }
     .player-label {
       position: absolute;
-      font-size: 1rem;
+      font-size: 0.9rem;
       font-weight: bold;
       text-align: center;
       color: white;
-      pointer-events: auto;
-      user-select: none;
+      background-color: rgba(0, 0, 0, 0.6);
+      border-radius: 5px;
+      padding: 0.3rem 0.4rem;
       transform: translate(-50%, -50%);
-      border: 2px solid transparent;
-      padding: 0.1rem 0.4rem;
+      pointer-events: auto;
     }
     .player-label.hover {
-      border: 2px dashed #00f0ff;
-    }
-    .lineup-player {
-      margin: 0.5rem 0;
-      background-color: #222;
-      padding: 0.5rem;
-      border-radius: 8px;
-      cursor: grab;
+      outline: 2px dashed #00f0ff;
     }
     .reset-button {
       margin-top: 1rem;
@@ -85,7 +93,7 @@
 </head>
 <body>
   <header>
-    <img src="logo.png" alt="Shockers Logo" />
+    <img src="https://media-service.gc.com/a2b23453-4e93-4595-9be8-7f95ad33a109" alt="Shockers Logo" />
     <div class="score">
       <div>Shockers 5 | Red Sox 3</div>
       <div>Inning: 4</div>
@@ -112,30 +120,44 @@
     const lineup = document.getElementById('lineup');
 
     const fieldPositions = [
-      { name: 'P', top: '50%', left: '50%' },
+      { name: 'P', top: '52%', left: '50%' },
       { name: 'C', top: '85%', left: '50%' },
-      { name: '1B', top: '60%', left: '75%' },
-      { name: '2B', top: '40%', left: '60%' },
-      { name: 'SS', top: '45%', left: '40%' },
+      { name: '1B', top: '62%', left: '75%' },
+      { name: '2B', top: '38%', left: '58%' },
+      { name: 'SS', top: '45%', left: '42%' },
       { name: '3B', top: '60%', left: '25%' },
-      { name: 'LF', top: '25%', left: '20%' },
-      { name: 'CF', top: '10%', left: '50%' },
-      { name: 'RF', top: '25%', left: '80%' }
+      { name: 'LF', top: '28%', left: '22%' },
+      { name: 'CF', top: '12%', left: '50%' },
+      { name: 'RF', top: '28%', left: '78%' }
     ];
 
     const assignments = {};
 
-    function updatePositionLabels(assignments) {
+    function updatePositionLabels() {
       document.querySelectorAll('.player-label').forEach(label => {
         const pos = label.dataset.position;
         const player = assignments[pos];
-        label.textContent = player ? player : pos;
+        label.textContent = player ? `${pos}: ${player}` : pos;
+      });
+
+      document.querySelectorAll('.lineup-player').forEach(item => {
+        const isActive = Object.values(assignments).includes(item.textContent);
+        item.classList.toggle('active', isActive);
+        if (isActive) {
+          for (const [pos, name] of Object.entries(assignments)) {
+            if (name === item.textContent) {
+              item.textContent = `${item.textContent.split(' (')[0]} (${pos})`;
+            }
+          }
+        } else {
+          item.textContent = item.textContent.split(' (')[0];
+        }
       });
     }
 
     function resetField() {
       Object.keys(assignments).forEach(key => delete assignments[key]);
-      updatePositionLabels(assignments);
+      updatePositionLabels();
 
       const playerNames = [
         '1. Everett H. (#7)', '2. Brecken M. (#5)', '3. Chase S. (#10)',
@@ -156,7 +178,7 @@
 
     function addDragHandlers(el) {
       el.addEventListener('dragstart', e => {
-        e.dataTransfer.setData('text/plain', el.textContent);
+        e.dataTransfer.setData('text/plain', el.textContent.split(' (')[0]);
       });
     }
 
@@ -179,12 +201,16 @@
         e.preventDefault();
         label.classList.remove('hover');
         const name = e.dataTransfer.getData('text/plain');
-        assignments[pos.name] = name;
-        updatePositionLabels(assignments);
 
-        lineup.querySelectorAll('.lineup-player').forEach(item => {
-          if (item.textContent === name) item.remove();
+        // Remove existing assignment if any
+        Object.keys(assignments).forEach(key => {
+          if (assignments[key] === name) {
+            delete assignments[key];
+          }
         });
+
+        assignments[pos.name] = name;
+        updatePositionLabels();
       });
 
       label.addEventListener('dblclick', () => {
@@ -196,7 +222,7 @@
           addDragHandlers(div);
           lineup.insertBefore(div, lineup.querySelector('button'));
           delete assignments[pos.name];
-          updatePositionLabels(assignments);
+          updatePositionLabels();
         }
       });
 
@@ -205,9 +231,7 @@
 
     resetField();
 
-    // Detect touchscreen
-    const isTouch = window.matchMedia("(pointer: coarse)").matches;
-    if (isTouch) {
+    if (window.matchMedia("(pointer: coarse)").matches) {
       alert("Touch mode enabled: Tap and hold to drag players to the field.");
     }
   </script>
