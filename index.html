@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shockers Dugout Display</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+    #header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 30px;
+    }
+    #logo {
+      height: 50px;
+    }
+    #clock {
+      font-size: 1.5em;
+    }
+    #main {
+      padding: 20px 30px;
+    }
+    #gc-schedule-widget-jfk0 {
+      background-color: #111;
+      border-radius: 10px;
+      padding: 20px;
+      height: 80vh;
+      overflow-y: auto;
+    }
+  </style>
+  <script>
+    function updateClock() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('clock').textContent = timeStr;
+    }
+    setInterval(updateClock, 1000);
+    window.onload = updateClock;
+  </script>
+</head>
+<body>
+  <div id="header">
+    <img id="logo" src="shockers-logo.png" alt="Shockers Logo" />
+    <div id="clock">--:--</div>
+  </div>
+
+  <div id="main">
+    <div id="gc-schedule-widget-jfk0"></div>
+  </div>
+
+  <!-- GameChanger SDK -->
+  <script src="https://widgets.gc.com/static/js/sdk.v1.js"></script>
+  <script>
+    window.GC.team.schedule.init({
+      target: "#gc-schedule-widget-jfk0",
+      widgetId: "6926c3c4-856c-4de7-a449-251bef09a469",
+      maxVerticalGamesVisible: 4,
+    });
+  </script>
+</body>
+</html>
