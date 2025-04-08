@@ -7,7 +7,7 @@
   <style>
     body {
       margin: 0;
-      background-color: #f4f4f4;
+      background-color: #fff;
       font-family: 'Inter', sans-serif;
       color: #000;
     }
@@ -20,18 +20,17 @@
       border-bottom: 2px solid #ccc;
     }
     header img {
-      height: 50px;
+      height: 60px;
     }
-    .scoreboard {
+    .scoreboard-header {
       text-align: center;
+      flex: 1;
     }
-    .scoreboard h2 {
+    .scoreboard-header h2 {
       margin: 0;
     }
     .main {
       display: flex;
-      flex-wrap: wrap;
-      height: calc(100vh - 100px);
     }
     .lineup {
       width: 25%;
@@ -39,13 +38,13 @@
       border-right: 2px solid #ccc;
     }
     .lineup h2 {
-      margin-bottom: 1rem;
+      text-align: center;
     }
     .lineup-player {
-      margin: 0.4rem 0;
-      padding: 0.5rem;
-      border-radius: 6px;
-      background-color: #ddd;
+      margin: 0.3rem 0;
+      padding: 0.4rem;
+      background-color: #eee;
+      border-radius: 4px;
       cursor: grab;
     }
     .lineup-player.active {
@@ -53,30 +52,34 @@
       font-weight: bold;
     }
     .field-wrapper {
-      width: 75%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    .field {
-      width: 90%;
-      max-width: 700px;
+      flex: 1;
       position: relative;
-      background-image: url('./baseball-field.jpg');
-      background-size: cover;
+      background-image: url('data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/...'); /* Truncated for brevity */
+      background-size: contain;
+      background-repeat: no-repeat;
       background-position: center;
-      height: 500px;
+      height: 700px;
     }
     .player-label {
       position: absolute;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       font-weight: bold;
-      color: #000;
-      background-color: rgba(255, 255, 255, 0.8);
-      padding: 0.3rem 0.5rem;
-      border-radius: 4px;
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
       transform: translate(-50%, -50%);
+      min-width: 60px;
+      min-height: 30px;
+      text-align: center;
+    }
+    .info-panels {
+      position: absolute;
+      bottom: 1rem;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 2rem;
+      font-size: 1rem;
     }
     .reset-button {
       margin-top: 1rem;
@@ -88,26 +91,16 @@
       border-radius: 6px;
       cursor: pointer;
     }
-    .info-panels {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 1rem;
-      width: 90%;
-      max-width: 700px;
-    }
-    .info-panel {
-      font-size: 1rem;
-    }
   </style>
 </head>
 <body>
   <header>
-    <img src="./shockers-logo.png" alt="Shockers Logo" onerror="this.style.display='none'" />
-    <div class="scoreboard">
-      <h2>Shockers 5 | Red Sox 3</h2>
+    <img src="shockers-logo.png" alt="Shockers Logo" onerror="this.style.display='none'" />
+    <div class="scoreboard-header">
+      <h2>Home Team 5 | Visiting Team 3</h2>
       <div>Balls: ⚪⚪⚪ Strikes: ⚪⚪ Outs: ⚪⚪⚪</div>
     </div>
-    <div class="scoreboard">
+    <div style="text-align:right;">
       <div>Inning: 4</div>
     </div>
   </header>
@@ -115,13 +108,11 @@
     <div class="lineup" id="lineup">
       <h2>Lineup</h2>
     </div>
-    <div class="field-wrapper">
-      <div class="field" id="field"></div>
-      <div class="info-panels">
-        <div class="info-panel" id="pitcher">Pitcher: —<br># of pitches: —</div>
-        <div class="info-panel" id="batter">Batter: —<br># of Hits vs. # of At Bats</div>
-      </div>
-    </div>
+    <div class="field-wrapper" id="field"></div>
+  </div>
+  <div class="info-panels">
+    <div class="info-panel" id="pitcher">Pitcher: —<br># of pitches thrown: —</div>
+    <div class="info-panel" id="batter">Batter: —<br># of Hits vs. At Bats</div>
   </div>
   <script>
     const players = [
@@ -131,15 +122,15 @@
     ];
 
     const fieldPositions = [
-      { name: 'P', top: '48%', left: '50%' },
-      { name: 'C', top: '88%', left: '50%' },
-      { name: '1B', top: '60%', left: '80%' },
-      { name: '2B', top: '35%', left: '60%' },
-      { name: 'SS', top: '42%', left: '40%' },
-      { name: '3B', top: '60%', left: '20%' },
-      { name: 'LF', top: '20%', left: '10%' },
+      { name: 'P', top: '49%', left: '50%' },
+      { name: 'C', top: '84%', left: '50%' },
+      { name: '1B', top: '66%', left: '82%' },
+      { name: '2B', top: '38%', left: '63%' },
+      { name: 'SS', top: '43%', left: '37%' },
+      { name: '3B', top: '66%', left: '18%' },
+      { name: 'LF', top: '19%', left: '22%' },
       { name: 'CF', top: '10%', left: '50%' },
-      { name: 'RF', top: '20%', left: '90%' }
+      { name: 'RF', top: '19%', left: '78%' }
     ];
 
     const assignments = {};
@@ -186,6 +177,7 @@
 
     function renderField() {
       const field = document.getElementById('field');
+      field.innerHTML = '';
       fieldPositions.forEach(pos => {
         const div = document.createElement('div');
         div.className = 'player-label';
