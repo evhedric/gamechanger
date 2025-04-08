@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Program GameChanger</title>
+  <title>Program GameChanger (Test Mode)</title>
   <style>
     body {
       font-family: Inter, sans-serif;
@@ -31,48 +31,25 @@
   </style>
 </head>
 <body>
-  <h1>⚾ Shockers Live Game Data</h1>
-  <div id="scoreboard" class="scoreboard">Looking for a live game...</div>
+  <h1>🧪 Test Mode: Mocked Scoreboard</h1>
+  <div id="scoreboard" class="scoreboard">Loading fake game data...</div>
 
   <script>
-    const teamId = "1mywYde2zhYZ";
-
-    async function fetchLiveGameId() {
-      const res = await fetch(`https://api.team-manager.gc.com/public/teams/${teamId}/games`);
-      const games = await res.json();
-
-      const now = new Date();
-      const liveGame = games.find(game => game.status === "in_progress");
-
-      if (liveGame) return liveGame;
-
-      // Try to find a game starting soon
-      for (let game of games) {
-        const start = new Date(game.start_time);
-        const diff = Math.abs(now - start) / 1000 / 60; // minutes
-        if (diff <= 30) return game;
-      }
-
-      return null;
-    }
-
     async function fetchAndDisplayScoreboard() {
-      const game = await fetchLiveGameId();
-
-      const scoreboard = document.getElementById("scoreboard");
-
-      if (!game) {
-        scoreboard.innerHTML = `<div>No live or upcoming game found.</div>`;
-        return;
-      }
-
-      const gameId = game.id;
-      const startTime = new Date(game.start_time).toLocaleString("en-US", {
-        hour: "numeric", minute: "numeric", hour12: true
-      });
-
-      const res = await fetch(`https://api.team-manager.gc.com/public/teams/${teamId}/games/${gameId}/details?include=line_scores`);
-      const data = await res.json();
+      // Mocked fake data for testing
+      const data = {
+        game: {
+          home_team: { name: "Shockers" },
+          away_team: { name: "Red Sox" },
+          line_scores: {
+            innings: [
+              { home: 2, away: 1 },
+              { home: 0, away: 3 },
+              { home: 1, away: 0 },
+            ]
+          }
+        }
+      };
 
       const home = data?.game?.home_team?.name || "Home";
       const away = data?.game?.away_team?.name || "Away";
@@ -84,19 +61,16 @@
       const homeScores = innings.map(i => i.home).join(" | ");
       const awayScores = innings.map(i => i.away).join(" | ");
 
-      const gameLive = game.status === "in_progress";
-
-      scoreboard.innerHTML = `
+      document.getElementById("scoreboard").innerHTML = `
         <div><span class="highlight">${away}</span>: ${awayScores} &nbsp; <strong>Total:</strong> ${awayRuns}</div>
         <div><span class="highlight">${home}</span>: ${homeScores} &nbsp; <strong>Total:</strong> ${homeRuns}</div>
         <br/>
         <div><strong>Inning:</strong> ${currentInning}</div>
-        <div class="faded">${gameLive ? "Game in progress" : "Next game starts at: " + startTime}</div>
+        <div class="faded">This is demo data (not live)</div>
       `;
     }
 
     fetchAndDisplayScoreboard();
-    setInterval(fetchAndDisplayScoreboard, 30000);
   </script>
 </body>
 </html>
