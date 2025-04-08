@@ -7,71 +7,76 @@
   <style>
     body {
       margin: 0;
-      background-color: #000;
-      color: #fff;
+      background-color: #f4f4f4;
       font-family: 'Inter', sans-serif;
+      color: #000;
     }
     header {
       display: flex;
       align-items: center;
-      padding: 1rem;
-      background-color: #111;
       justify-content: space-between;
+      padding: 1rem;
+      background-color: #fff;
+      border-bottom: 2px solid #ccc;
     }
     header img {
       height: 50px;
     }
-    .score {
-      font-size: 1.2rem;
-      text-align: right;
+    .scoreboard {
+      text-align: center;
+    }
+    .scoreboard h2 {
+      margin: 0;
     }
     .main {
       display: flex;
+      flex-wrap: wrap;
       height: calc(100vh - 100px);
     }
     .lineup {
       width: 25%;
-      background-color: #111;
       padding: 1rem;
-      overflow-y: auto;
+      border-right: 2px solid #ccc;
     }
     .lineup h2 {
-      margin-bottom: 0.5rem;
+      margin-bottom: 1rem;
     }
     .lineup-player {
-      margin: 0.3rem 0;
-      background-color: #222;
+      margin: 0.4rem 0;
       padding: 0.5rem;
       border-radius: 6px;
+      background-color: #ddd;
       cursor: grab;
-      transition: background 0.2s;
     }
     .lineup-player.active {
-      background-color: green;
-      color: #fff;
+      background-color: #90ee90;
+      font-weight: bold;
+    }
+    .field-wrapper {
+      width: 75%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
     .field {
-      width: 75%;
+      width: 90%;
+      max-width: 700px;
       position: relative;
-      background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Baseball_field_diamond.svg/2000px-Baseball_field_diamond.svg.png');
-      background-size: contain;
+      background-image: url('https://upload.wikimedia.org/wikipedia/commons/e/ef/Baseball_field_diamond.svg');
+      background-size: cover;
       background-position: center;
-      background-repeat: no-repeat;
+      height: 500px;
     }
     .player-label {
       position: absolute;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: bold;
-      text-align: center;
-      color: white;
-      background-color: rgba(0, 0, 0, 0.6);
-      border-radius: 5px;
-      padding: 0.3rem 0.4rem;
+      color: #000;
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 0.3rem 0.5rem;
+      border-radius: 4px;
       transform: translate(-50%, -50%);
-      pointer-events: auto;
-    }
-    .player-label.hover {
-      outline: 2px dashed #00f0ff;
     }
     .reset-button {
       margin-top: 1rem;
@@ -80,160 +85,143 @@
       border: none;
       color: white;
       width: 100%;
-      border-radius: 8px;
-      font-size: 1rem;
+      border-radius: 6px;
       cursor: pointer;
     }
-    @media (pointer: coarse) {
-      .player-label, .lineup-player {
-        touch-action: none;
-      }
+    .info-panels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1rem;
+      width: 90%;
+      max-width: 700px;
+    }
+    .info-panel {
+      font-size: 1rem;
     }
   </style>
 </head>
 <body>
   <header>
-    <img src="https://media-service.gc.com/a2b23453-4e93-4595-9be8-7f95ad33a109" alt="Shockers Logo" />
-    <div class="score">
-      <div>Shockers 5 | Red Sox 3</div>
+    <img src="https://media.graphassets.com/FhWvQZXET16e3gZb1qRP" alt="Shockers Logo" onerror="this.style.display='none'" />
+    <div class="scoreboard">
+      <h2>Shockers 5 | Red Sox 3</h2>
+      <div>Balls: ⚪⚪⚪ Strikes: ⚪⚪ Outs: ⚪⚪⚪</div>
+    </div>
+    <div class="scoreboard">
       <div>Inning: 4</div>
     </div>
   </header>
   <div class="main">
     <div class="lineup" id="lineup">
       <h2>Lineup</h2>
-      <div class="lineup-player" draggable="true">1. Everett H. (#7)</div>
-      <div class="lineup-player" draggable="true">2. Brecken M. (#5)</div>
-      <div class="lineup-player" draggable="true">3. Chase S. (#10)</div>
-      <div class="lineup-player" draggable="true">4. Jaxon L. (#4)</div>
-      <div class="lineup-player" draggable="true">5. Carter W. (#8)</div>
-      <div class="lineup-player" draggable="true">6. Mason G. (#12)</div>
-      <div class="lineup-player" draggable="true">7. Tyler B. (#6)</div>
-      <div class="lineup-player" draggable="true">8. Liam P. (#1)</div>
-      <div class="lineup-player" draggable="true">9. Noah D. (#2)</div>
-      <button class="reset-button" onclick="resetField()">Reset Field</button>
     </div>
-    <div class="field" id="field"></div>
+    <div class="field-wrapper">
+      <div class="field" id="field"></div>
+      <div class="info-panels">
+        <div class="info-panel" id="pitcher">Pitcher: —<br># of pitches: —</div>
+        <div class="info-panel" id="batter">Batter: —<br># of Hits vs. # of At Bats</div>
+      </div>
+    </div>
   </div>
   <script>
-    const field = document.getElementById('field');
-    const lineup = document.getElementById('lineup');
+    const players = [
+      'Everett H. (#7)', 'Brecken M. (#5)', 'Chase S. (#10)',
+      'Jaxon L. (#4)', 'Carter W. (#8)', 'Mason G. (#12)',
+      'Tyler B. (#6)', 'Liam P. (#1)', 'Noah D. (#2)'
+    ];
 
     const fieldPositions = [
-      { name: 'P', top: '52%', left: '50%' },
-      { name: 'C', top: '85%', left: '50%' },
-      { name: '1B', top: '62%', left: '75%' },
-      { name: '2B', top: '38%', left: '58%' },
-      { name: 'SS', top: '45%', left: '42%' },
-      { name: '3B', top: '60%', left: '25%' },
-      { name: 'LF', top: '28%', left: '22%' },
-      { name: 'CF', top: '12%', left: '50%' },
-      { name: 'RF', top: '28%', left: '78%' }
+      { name: 'P', top: '48%', left: '50%' },
+      { name: 'C', top: '88%', left: '50%' },
+      { name: '1B', top: '60%', left: '80%' },
+      { name: '2B', top: '35%', left: '60%' },
+      { name: 'SS', top: '42%', left: '40%' },
+      { name: '3B', top: '60%', left: '20%' },
+      { name: 'LF', top: '20%', left: '10%' },
+      { name: 'CF', top: '10%', left: '50%' },
+      { name: 'RF', top: '20%', left: '90%' }
     ];
 
     const assignments = {};
 
-    function updatePositionLabels() {
+    function renderLineup() {
+      const lineup = document.getElementById('lineup');
+      lineup.innerHTML = '<h2>Lineup</h2>';
+
+      players.forEach(player => {
+        const div = document.createElement('div');
+        div.className = 'lineup-player';
+        div.textContent = player;
+        div.draggable = true;
+        div.addEventListener('dragstart', e => {
+          e.dataTransfer.setData('text/plain', player);
+        });
+        lineup.appendChild(div);
+      });
+
+      const reset = document.createElement('button');
+      reset.className = 'reset-button';
+      reset.textContent = 'Reset Field';
+      reset.onclick = () => {
+        Object.keys(assignments).forEach(k => delete assignments[k]);
+        updateField();
+      };
+      lineup.appendChild(reset);
+    }
+
+    function updateField() {
       document.querySelectorAll('.player-label').forEach(label => {
         const pos = label.dataset.position;
         const player = assignments[pos];
-        label.textContent = player ? `${pos}: ${player}` : pos;
+        label.textContent = player || pos;
       });
 
-      document.querySelectorAll('.lineup-player').forEach(item => {
-        const isActive = Object.values(assignments).includes(item.textContent);
-        item.classList.toggle('active', isActive);
-        if (isActive) {
-          for (const [pos, name] of Object.entries(assignments)) {
-            if (name === item.textContent) {
-              item.textContent = `${item.textContent.split(' (')[0]} (${pos})`;
-            }
-          }
-        } else {
-          item.textContent = item.textContent.split(' (')[0];
-        }
+      document.querySelectorAll('.lineup-player').forEach(el => {
+        const playerName = el.textContent.split(' (')[0];
+        const found = Object.entries(assignments).find(([pos, name]) => name === playerName);
+        el.classList.toggle('active', !!found);
+        el.textContent = found ? `${playerName} (${found[0]})` : playerName;
       });
     }
 
-    function resetField() {
-      Object.keys(assignments).forEach(key => delete assignments[key]);
-      updatePositionLabels();
-
-      const playerNames = [
-        '1. Everett H. (#7)', '2. Brecken M. (#5)', '3. Chase S. (#10)',
-        '4. Jaxon L. (#4)', '5. Carter W. (#8)', '6. Mason G. (#12)',
-        '7. Tyler B. (#6)', '8. Liam P. (#1)', '9. Noah D. (#2)'
-      ];
-
-      lineup.querySelectorAll('.lineup-player').forEach(e => e.remove());
-      playerNames.forEach(name => {
+    function renderField() {
+      const field = document.getElementById('field');
+      fieldPositions.forEach(pos => {
         const div = document.createElement('div');
-        div.className = 'lineup-player';
-        div.draggable = true;
-        div.textContent = name;
-        addDragHandlers(div);
-        lineup.insertBefore(div, lineup.querySelector('button'));
-      });
-    }
+        div.className = 'player-label';
+        div.dataset.position = pos.name;
+        div.style.top = pos.top;
+        div.style.left = pos.left;
+        div.textContent = pos.name;
 
-    function addDragHandlers(el) {
-      el.addEventListener('dragstart', e => {
-        e.dataTransfer.setData('text/plain', el.textContent.split(' (')[0]);
-      });
-    }
+        div.addEventListener('dragover', e => e.preventDefault());
+        div.addEventListener('drop', e => {
+          e.preventDefault();
+          const dropped = e.dataTransfer.getData('text/plain');
+          const nameOnly = dropped.split(' (')[0];
+          Object.keys(assignments).forEach(k => {
+            if (assignments[k] === nameOnly) delete assignments[k];
+          });
+          assignments[pos.name] = nameOnly;
+          updateField();
+        });
 
-    fieldPositions.forEach(pos => {
-      const label = document.createElement('div');
-      label.className = 'player-label';
-      label.style.top = pos.top;
-      label.style.left = pos.left;
-      label.dataset.position = pos.name;
-      label.textContent = pos.name;
-
-      label.addEventListener('dragover', e => {
-        e.preventDefault();
-        label.classList.add('hover');
-      });
-      label.addEventListener('dragleave', () => {
-        label.classList.remove('hover');
-      });
-      label.addEventListener('drop', e => {
-        e.preventDefault();
-        label.classList.remove('hover');
-        const name = e.dataTransfer.getData('text/plain');
-
-        // Remove existing assignment if any
-        Object.keys(assignments).forEach(key => {
-          if (assignments[key] === name) {
-            delete assignments[key];
+        div.setAttribute('draggable', 'true');
+        div.addEventListener('dragstart', e => {
+          if (assignments[pos.name]) {
+            e.dataTransfer.setData('text/plain', assignments[pos.name]);
+            delete assignments[pos.name];
+            updateField();
           }
         });
 
-        assignments[pos.name] = name;
-        updatePositionLabels();
+        field.appendChild(div);
       });
-
-      label.addEventListener('dblclick', () => {
-        if (assignments[pos.name]) {
-          const div = document.createElement('div');
-          div.className = 'lineup-player';
-          div.draggable = true;
-          div.textContent = assignments[pos.name];
-          addDragHandlers(div);
-          lineup.insertBefore(div, lineup.querySelector('button'));
-          delete assignments[pos.name];
-          updatePositionLabels();
-        }
-      });
-
-      field.appendChild(label);
-    });
-
-    resetField();
-
-    if (window.matchMedia("(pointer: coarse)").matches) {
-      alert("Touch mode enabled: Tap and hold to drag players to the field.");
     }
+
+    renderLineup();
+    renderField();
+    updateField();
   </script>
 </body>
 </html>
