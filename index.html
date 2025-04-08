@@ -2,68 +2,50 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Shockers Dugout Display</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program GameChanger</title>
   <style>
     body {
-      margin: 0;
-      padding: 0;
-      background-color: #000;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      overflow: hidden;
+      font-family: Inter, sans-serif;
+      background-color: black;
+      color: white;
+      padding: 2rem;
     }
-    #header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 30px;
-    }
-    #logo {
-      height: 50px;
-    }
-    #clock {
-      font-size: 1.5em;
-    }
-    #main {
-      padding: 20px 30px;
-    }
-    #gc-schedule-widget-jfk0 {
-      background-color: #111;
-      border-radius: 10px;
-      padding: 20px;
-      height: 80vh;
-      overflow-y: auto;
+    .scoreboard {
+      font-size: 2rem;
+      margin-top: 1rem;
     }
   </style>
-  <script>
-    function updateClock() {
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      document.getElementById('clock').textContent = timeStr;
-    }
-    setInterval(updateClock, 1000);
-    window.onload = updateClock;
-  </script>
 </head>
 <body>
-  <div id="header">
-    <img id="logo" src="shockers-logo.png" alt="Shockers Logo" />
-    <div id="clock">--:--</div>
-  </div>
+  <h1>⚾️ Shockers Live Game Data</h1>
+  <div id="scoreboard" class="scoreboard">Loading...</div>
 
-  <div id="main">
-    <div id="gc-schedule-widget-jfk0"></div>
-  </div>
-
-  <!-- GameChanger SDK -->
-  <script src="https://widgets.gc.com/static/js/sdk.v1.js"></script>
   <script>
-    window.GC.team.schedule.init({
-      target: "#gc-schedule-widget-jfk0",
-      widgetId: "6926c3c4-856c-4de7-a449-251bef09a469",
-      maxVerticalGamesVisible: 4,
-    });
+    async function fetchGameData() {
+      try {
+        const res = await fetch("https://api.team-manager.gc.com/public/teams/1mywYde2zhYZ/games/b166e5f5-2246-4600-8bb2-a2c2294acfb8/details?include=line_scores");
+        const data = await res.json();
+
+        const home = data?.game?.home_team?.name || "Home";
+        const away = data?.game?.away_team?.name || "Away";
+        const innings = data?.game?.line_scores?.innings || [];
+
+        const homeScores = innings.map(i => i.home).join(" ");
+        const awayScores = innings.map(i => i.away).join(" ");
+
+        document.getElementById("scoreboard").innerHTML = `
+          <strong>${away}</strong>: ${awayScores} <br/>
+          <strong>${home}</strong>: ${homeScores}
+        `;
+      } catch (err) {
+        console.error("Error fetching game data:", err);
+        document.getElementById("scoreboard").innerText = "Failed to load data.";
+      }
+    }
+
+    fetchGameData(); // load once
+    setInterval(fetchGameData, 30000); // refresh every 30s
   </script>
 </body>
 </html>
